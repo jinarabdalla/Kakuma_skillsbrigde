@@ -1,0 +1,445 @@
+{
+  "entities": {
+    "SkillsProfile": {
+      "title": "SkillsProfile",
+      "description": "Registered refugee skills passport and qualification profile stored per authenticated user.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID of the profile owner."
+        },
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "campZone": {
+          "type": "string",
+          "enum": [
+            "Kakuma 1",
+            "Kakuma 2",
+            "Kakuma 3",
+            "Kakuma 4",
+            "Kalobeyei Village 1",
+            "Kalobeyei Village 2",
+            "Kalobeyei Village 3",
+            "Kakuma Town"
+          ]
+        },
+        "countryOfOrigin": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "primaryTrade": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "yearsExperience": {
+          "type": "number"
+        },
+        "priorQualification": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "recordStatus": {
+          "type": "string",
+          "enum": [
+            "documents_available",
+            "partial_documents",
+            "records_lost_in_displacement"
+          ]
+        },
+        "contactPhone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "languages": {
+          "type": "array",
+          "description": "Spoken and working languages (1 to 10 entries)."
+        },
+        "competencies": {
+          "type": "array",
+          "description": "Demonstrated practical competencies (1 to 12 entries)."
+        },
+        "bio": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "passportCode": {
+          "type": "string",
+          "maxLength": 12,
+          "pattern": "^KSB-[A-Z0-9]{6}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "fullName",
+        "campZone",
+        "countryOfOrigin",
+        "primaryTrade",
+        "yearsExperience",
+        "priorQualification",
+        "recordStatus",
+        "contactPhone",
+        "languages",
+        "competencies",
+        "bio",
+        "passportCode",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CertificateRecord": {
+      "title": "CertificateRecord",
+      "description": "Supporting academic, trade, or reference document uploaded by a refugee.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "issuingInstitution": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "countryIssued": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "yearObtained": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 12
+        },
+        "documentType": {
+          "type": "string",
+          "enum": [
+            "Academic Transcript",
+            "Trade Certificate",
+            "Reference Letter",
+            "Work Portfolio Photo",
+            "Training Completion"
+          ]
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "fileSizeBytes": {
+          "type": "number"
+        },
+        "previewDataUrl": {
+          "type": "string",
+          "maxLength": 650000
+        },
+        "verificationStatus": {
+          "type": "string",
+          "enum": [
+            "Uploaded for Review",
+            "Pending Equivalency",
+            "Verified"
+          ]
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "title",
+        "issuingInstitution",
+        "countryIssued",
+        "yearObtained",
+        "documentType",
+        "fileName",
+        "mimeType",
+        "fileSizeBytes",
+        "previewDataUrl",
+        "verificationStatus",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AssessmentRequest": {
+      "title": "AssessmentRequest",
+      "description": "Request for an in-person practical skills assessment in Kakuma or Kalobeyei.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "applicantName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "tradeCategory": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "assessmentCenter": {
+          "type": "string",
+          "enum": [
+            "Kakuma Town Vocational Hub",
+            "Kalobeyei Innovation Workshop",
+            "Kakuma 3 Technical Annex",
+            "Kakuma 1 Digital & ICT Lab",
+            "Turkana West Health & Care Center"
+          ]
+        },
+        "preferredWindow": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "hasDocuments": {
+          "type": "boolean"
+        },
+        "practicalSummary": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 800
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Requested",
+            "Scheduled",
+            "Assessed",
+            "Certified",
+            "Withdrawn"
+          ]
+        },
+        "assessorFeedback": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "applicantName",
+        "tradeCategory",
+        "assessmentCenter",
+        "preferredWindow",
+        "hasDocuments",
+        "practicalSummary",
+        "status",
+        "assessorFeedback",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "TrainingEnrollment": {
+      "title": "TrainingEnrollment",
+      "description": "User application or saved bookmark for a bridging or certification training program.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "programId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "programTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "fundingType": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "motivation": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Saved",
+            "Applied",
+            "Enrolled",
+            "Completed",
+            "Withdrawn"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "programId",
+        "programTitle",
+        "provider",
+        "fundingType",
+        "motivation",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OrganizationConnection": {
+      "title": "OrganizationConnection",
+      "description": "Direct credential recognition or employment inquiry sent to a partner organization.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "organizationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "organizationName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "recognitionPurpose": {
+          "type": "string",
+          "enum": [
+            "Qualification Equivalency",
+            "Practical Assessment Referral",
+            "Bridging Scholarship",
+            "Employment Verification"
+          ]
+        },
+        "applicantName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "primaryTrade": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "message": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 600
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Sent",
+            "In Review",
+            "Connected",
+            "Closed"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "organizationId",
+        "organizationName",
+        "recognitionPurpose",
+        "applicantName",
+        "primaryTrade",
+        "message",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/skillsProfiles/{profileId}": {
+      "schema": { "$ref": "#/entities/SkillsProfile" },
+      "description": "Personal skills passport documents keyed by the user's UID."
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "#/entities/CertificateRecord" },
+      "description": "Uploaded certificate and supporting qualification documents owned by individual users."
+    },
+    "/assessmentRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/AssessmentRequest" },
+      "description": "Practical skills assessment requests submitted by users."
+    },
+    "/trainingEnrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/TrainingEnrollment" },
+      "description": "Training and bridging program applications and saved bookmarks owned by users."
+    },
+    "/organizationConnections/{connectionId}": {
+      "schema": { "$ref": "#/entities/OrganizationConnection" },
+      "description": "Recognition and employment connection inquiries sent by users to partner organizations."
+    }
+  }
+}

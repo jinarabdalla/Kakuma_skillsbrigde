@@ -1,0 +1,366 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helpers ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'jinaroabdalla@gmail.com'
+      );
+    }
+
+    // --- Validation Blueprints ---
+    function isValidSkillsProfile(data) {
+      return data.keys().hasAll([
+          'ownerId', 'fullName', 'campZone', 'countryOfOrigin', 'primaryTrade',
+          'yearsExperience', 'priorQualification', 'recordStatus', 'contactPhone',
+          'languages', 'competencies', 'bio', 'passportCode', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'fullName', 'campZone', 'countryOfOrigin', 'primaryTrade',
+          'yearsExperience', 'priorQualification', 'recordStatus', 'contactPhone',
+          'languages', 'competencies', 'bio', 'passportCode', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100
+        && data.campZone in [
+          'Kakuma 1', 'Kakuma 2', 'Kakuma 3', 'Kakuma 4',
+          'Kalobeyei Village 1', 'Kalobeyei Village 2', 'Kalobeyei Village 3', 'Kakuma Town'
+        ]
+        && data.countryOfOrigin is string && data.countryOfOrigin.size() >= 2 && data.countryOfOrigin.size() <= 80
+        && data.primaryTrade is string && data.primaryTrade.size() >= 2 && data.primaryTrade.size() <= 100
+        && (data.yearsExperience is int || data.yearsExperience is float) && data.yearsExperience >= 0 && data.yearsExperience <= 60
+        && data.priorQualification is string && data.priorQualification.size() <= 200
+        && data.recordStatus in ['documents_available', 'partial_documents', 'records_lost_in_displacement']
+        && data.contactPhone is string && data.contactPhone.size() <= 30
+        && data.languages is list && data.languages.size() >= 1 && data.languages.size() <= 10
+        && data.languages[0] is string && data.languages[0].size() >= 1 && data.languages[0].size() <= 40
+        && data.competencies is list && data.competencies.size() >= 1 && data.competencies.size() <= 12
+        && data.competencies[0] is string && data.competencies[0].size() >= 1 && data.competencies[0].size() <= 80
+        && data.bio is string && data.bio.size() <= 600
+        && data.passportCode is string && data.passportCode.size() == 10 && data.passportCode.matches('^KSB-[A-Z0-9]{6}$')
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCertificateRecord(data) {
+      return data.keys().hasAll([
+          'ownerId', 'title', 'issuingInstitution', 'countryIssued', 'yearObtained',
+          'documentType', 'fileName', 'mimeType', 'fileSizeBytes', 'previewDataUrl',
+          'verificationStatus', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'title', 'issuingInstitution', 'countryIssued', 'yearObtained',
+          'documentType', 'fileName', 'mimeType', 'fileSizeBytes', 'previewDataUrl',
+          'verificationStatus', 'notes', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.title is string && data.title.size() >= 2 && data.title.size() <= 140
+        && data.issuingInstitution is string && data.issuingInstitution.size() >= 2 && data.issuingInstitution.size() <= 140
+        && data.countryIssued is string && data.countryIssued.size() >= 2 && data.countryIssued.size() <= 80
+        && data.yearObtained is string && data.yearObtained.size() >= 4 && data.yearObtained.size() <= 12
+        && data.documentType in [
+          'Academic Transcript', 'Trade Certificate', 'Reference Letter',
+          'Work Portfolio Photo', 'Training Completion'
+        ]
+        && data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 160
+        && data.mimeType is string && data.mimeType.size() >= 1 && data.mimeType.size() <= 80
+        && (data.fileSizeBytes is int || data.fileSizeBytes is float) && data.fileSizeBytes >= 0 && data.fileSizeBytes <= 450000
+        && data.previewDataUrl is string && data.previewDataUrl.size() <= 650000
+        && data.verificationStatus in ['Uploaded for Review', 'Pending Equivalency', 'Verified']
+        && data.notes is string && data.notes.size() <= 400
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAssessmentRequest(data) {
+      return data.keys().hasAll([
+          'ownerId', 'applicantName', 'tradeCategory', 'assessmentCenter',
+          'preferredWindow', 'hasDocuments', 'practicalSummary', 'status',
+          'assessorFeedback', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'applicantName', 'tradeCategory', 'assessmentCenter',
+          'preferredWindow', 'hasDocuments', 'practicalSummary', 'status',
+          'assessorFeedback', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.applicantName is string && data.applicantName.size() >= 2 && data.applicantName.size() <= 100
+        && data.tradeCategory is string && data.tradeCategory.size() >= 2 && data.tradeCategory.size() <= 100
+        && data.assessmentCenter in [
+          'Kakuma Town Vocational Hub',
+          'Kalobeyei Innovation Workshop',
+          'Kakuma 3 Technical Annex',
+          'Kakuma 1 Digital & ICT Lab',
+          'Turkana West Health & Care Center'
+        ]
+        && data.preferredWindow is string && data.preferredWindow.size() >= 2 && data.preferredWindow.size() <= 80
+        && data.hasDocuments is bool
+        && data.practicalSummary is string && data.practicalSummary.size() >= 10 && data.practicalSummary.size() <= 800
+        && data.status in ['Requested', 'Scheduled', 'Assessed', 'Certified', 'Withdrawn']
+        && data.assessorFeedback is string && data.assessorFeedback.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidTrainingEnrollment(data) {
+      return data.keys().hasAll([
+          'ownerId', 'programId', 'programTitle', 'provider',
+          'fundingType', 'motivation', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'programId', 'programTitle', 'provider',
+          'fundingType', 'motivation', 'status', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && isValidId(data.programId)
+        && data.programTitle is string && data.programTitle.size() >= 2 && data.programTitle.size() <= 140
+        && data.provider is string && data.provider.size() >= 2 && data.provider.size() <= 120
+        && data.fundingType is string && data.fundingType.size() >= 2 && data.fundingType.size() <= 80
+        && data.motivation is string && data.motivation.size() <= 500
+        && data.status in ['Saved', 'Applied', 'Enrolled', 'Completed', 'Withdrawn']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrganizationConnection(data) {
+      return data.keys().hasAll([
+          'ownerId', 'organizationId', 'organizationName', 'recognitionPurpose',
+          'applicantName', 'primaryTrade', 'message', 'status', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'organizationId', 'organizationName', 'recognitionPurpose',
+          'applicantName', 'primaryTrade', 'message', 'status', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && isValidId(data.organizationId)
+        && data.organizationName is string && data.organizationName.size() >= 2 && data.organizationName.size() <= 140
+        && data.recognitionPurpose in [
+          'Qualification Equivalency', 'Practical Assessment Referral',
+          'Bridging Scholarship', 'Employment Verification'
+        ]
+        && data.applicantName is string && data.applicantName.size() >= 2 && data.applicantName.size() <= 100
+        && data.primaryTrade is string && data.primaryTrade.size() >= 2 && data.primaryTrade.size() <= 100
+        && data.message is string && data.message.size() >= 10 && data.message.size() <= 600
+        && data.status in ['Sent', 'In Review', 'Connected', 'Closed']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    // Admins lookup (read-only for owner or admin)
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && (isOwner(adminId) || isAdmin());
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+
+    // 1. Skills Profiles (keyed by UID)
+    match /skillsProfiles/{profileId} {
+      allow get: if isValidId(profileId) && (isOwner(profileId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(profileId)
+        && profileId == request.auth.uid
+        && isValidSkillsProfile(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(profileId)
+        && isValidSkillsProfile(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().passportCode == existing().passportCode
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() || (
+            isOwner(profileId)
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'fullName', 'campZone', 'countryOfOrigin', 'primaryTrade',
+              'yearsExperience', 'priorQualification', 'recordStatus', 'contactPhone',
+              'languages', 'competencies', 'bio', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isValidId(profileId) && (isOwner(profileId) || isAdmin());
+    }
+
+    // 2. Uploaded Certificates
+    match /certificates/{certificateId} {
+      allow get: if isValidId(certificateId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(certificateId)
+        && isValidCertificateRecord(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().verificationStatus == 'Uploaded for Review'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(certificateId)
+        && isValidCertificateRecord(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() || (
+            isOwner(existing().ownerId)
+            && existing().verificationStatus != 'Verified'
+            && incoming().verificationStatus == existing().verificationStatus
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'issuingInstitution', 'countryIssued', 'yearObtained',
+              'documentType', 'notes', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isValidId(certificateId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 3. Practical Skills Assessment Requests
+    match /assessmentRequests/{requestId} {
+      allow get: if isValidId(requestId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(requestId)
+        && isValidAssessmentRequest(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().status == 'Requested'
+        && incoming().assessorFeedback == ''
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(requestId)
+        && isValidAssessmentRequest(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() || (
+            isOwner(existing().ownerId)
+            && existing().status in ['Requested', 'Scheduled']
+            && (
+              (
+                existing().status == 'Requested'
+                && incoming().status == 'Requested'
+                && incoming().diff(existing()).affectedKeys().hasOnly([
+                  'preferredWindow', 'practicalSummary', 'assessmentCenter', 'hasDocuments', 'updatedAt'
+                ])
+              ) || (
+                incoming().status == 'Withdrawn'
+                && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+              )
+            )
+          )
+        );
+
+      allow delete: if isValidId(requestId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 4. Training & Bridging Enrollments
+    match /trainingEnrollments/{enrollmentId} {
+      allow get: if isValidId(enrollmentId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(enrollmentId)
+        && isValidTrainingEnrollment(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().status in ['Saved', 'Applied']
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(enrollmentId)
+        && isValidTrainingEnrollment(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().programId == existing().programId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() || (
+            isOwner(existing().ownerId)
+            && existing().status in ['Saved', 'Applied']
+            && (
+              (
+                incoming().status in ['Saved', 'Applied', 'Withdrawn']
+                && incoming().diff(existing()).affectedKeys().hasOnly(['motivation', 'status', 'updatedAt'])
+              )
+            )
+          )
+        );
+
+      allow delete: if isValidId(enrollmentId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+
+    // 5. Recognizing Organization Connections
+    match /organizationConnections/{connectionId} {
+      allow get: if isValidId(connectionId) && (isOwner(existing().ownerId) || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+
+      allow create: if isVerifiedUser()
+        && isValidId(connectionId)
+        && isValidOrganizationConnection(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().status == 'Sent'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(connectionId)
+        && isValidOrganizationConnection(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().organizationId == existing().organizationId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() || (
+            isOwner(existing().ownerId)
+            && existing().status in ['Sent', 'In Review']
+            && incoming().status == 'Closed'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isValidId(connectionId) && (isOwner(existing().ownerId) || isAdmin());
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Kakuma SkillsBridge",
+  "description": "Your Skills Matter. Your Future Matters. Credential recognition, practical skills validation, training pathways, and partner connections for refugees in Kakuma (SDGs 4 & 8).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
